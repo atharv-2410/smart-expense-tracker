@@ -126,15 +126,15 @@ html, body, [class*="css"] {
 }
 
 .kpi-hero {
-    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-    border: 1px solid #334155;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14);
+    background: linear-gradient(145deg, #0f172a 0%, #134e4a 100%);
+    border: 1px solid #0d9488;
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.16);
 }
 
 .kpi-secondary {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
 }
 
 .kpi-header {
@@ -153,11 +153,11 @@ html, body, [class*="css"] {
 }
 
 .hero-eyebrow {
-    color: #94a3b8;
+    color: #5eead4;
 }
 
 .secondary-eyebrow {
-    color: #64748b;
+    color: #94a3b8;
 }
 
 .kpi-value {
@@ -174,7 +174,7 @@ html, body, [class*="css"] {
 }
 
 .secondary-value {
-    color: #0f172a;
+    color: #f8fafc;
 }
 
 .kpi-subtext {
@@ -189,7 +189,7 @@ html, body, [class*="css"] {
 }
 
 .secondary-subtext {
-    color: #64748b;
+    color: #94a3b8;
 }
 
 .kpi-badge {
@@ -719,61 +719,55 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- UI Helper Components
 def render_header(eyebrow: str, title: str, subtitle: str = ""):
-    st.markdown(
-        f"""
-        <div class="page-header-container">
-            <div class="page-eyebrow">{eyebrow}</div>
-            <h1 class="page-title">{title}</h1>
-            {f'<p class="page-subtitle">{subtitle}</p>' if subtitle else ''}
-        </div>
-        """,
-        unsafe_allow_html=True,
+    sub_html = f'<p class="page-subtitle">{subtitle}</p>' if subtitle else ''
+    html = (
+        f'<div class="page-header-container">'
+        f'<div class="page-eyebrow">{eyebrow}</div>'
+        f'<h1 class="page-title">{title}</h1>'
+        f'{sub_html}'
+        f'</div>'
     )
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def render_kpis(hero: dict, secondaries: list[dict]):
     """
     Renders the consistent KPI card hierarchy:
     - hero: Dark hero card for primary volume/spend/projection
-    - secondaries: Crisp lighter cards for supporting metrics
+    - secondaries: Styled dark cards for supporting metrics
     """
     hero_badge_html = f'<span class="kpi-badge hero">{hero["badge"]}</span>' if hero.get("badge") else ""
-    hero_html = f"""
-    <div class="kpi-card kpi-hero">
-        <div class="kpi-header">
-            <span class="kpi-eyebrow hero-eyebrow">{hero['eyebrow']}</span>
-            {hero_badge_html}
-        </div>
-        <div class="kpi-value hero-value">{hero['value']}</div>
-        <div class="kpi-subtext hero-subtext">{hero.get('subtext', '')}</div>
-    </div>
-    """
+    hero_html = (
+        f'<div class="kpi-card kpi-hero">'
+        f'<div class="kpi-header">'
+        f'<span class="kpi-eyebrow hero-eyebrow">{hero["eyebrow"]}</span>'
+        f'{hero_badge_html}'
+        f'</div>'
+        f'<div class="kpi-value hero-value">{hero["value"]}</div>'
+        f'<div class="kpi-subtext hero-subtext">{hero.get("subtext", "")}</div>'
+        f'</div>'
+    )
 
     sec_cards = []
     for s in secondaries:
         badge_cls = s.get("badge_type", "good")
         badge_html = f'<span class="kpi-badge {badge_cls}">{s["badge"]}</span>' if s.get("badge") else ""
-        card = f"""
-        <div class="kpi-card kpi-secondary">
-            <div class="kpi-header">
-                <span class="kpi-eyebrow secondary-eyebrow">{s['eyebrow']}</span>
-                {badge_html}
-            </div>
-            <div class="kpi-value secondary-value">{s['value']}</div>
-            <div class="kpi-subtext secondary-subtext">{s.get('subtext', '')}</div>
-        </div>
-        """
+        card = (
+            f'<div class="kpi-card kpi-secondary">'
+            f'<div class="kpi-header">'
+            f'<span class="kpi-eyebrow secondary-eyebrow">{s["eyebrow"]}</span>'
+            f'{badge_html}'
+            f'</div>'
+            f'<div class="kpi-value secondary-value">{s["value"]}</div>'
+            f'<div class="kpi-subtext secondary-subtext">{s.get("subtext", "")}</div>'
+            f'</div>'
+        )
         sec_cards.append(card)
 
     total_cols = 1 + len(secondaries)
     grid_css = f"grid-template-columns: repeat({total_cols}, minmax(0, 1fr));"
-
-    html = f"""
-    <div class="kpi-grid" style="{grid_css}">
-        {hero_html}
-        {''.join(sec_cards)}
-    </div>
-    """
+    cards_html = "".join([hero_html] + sec_cards)
+    html = f'<div class="kpi-grid" style="{grid_css}">{cards_html}</div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -968,28 +962,18 @@ if page == "Dashboard":
     for _, r in bs.iterrows():
         if r["status"] == "over":
             st.markdown(
-                f"""
-                <div class="alert-banner danger">
-                    <span style="font-size: 1.1rem;">🚨</span>
-                    <div>
-                        <strong>{r['category']} budget exceeded:</strong>
-                        {inr(r['spent'])} spent of {inr(r['budget'])} limit ({r['pct']:.0f}% utilized).
-                    </div>
-                </div>
-                """,
+                f'<div class="alert-banner danger">'
+                f'<span style="font-size: 1.1rem;">🚨</span>'
+                f'<div><strong>{r["category"]} budget exceeded:</strong> {inr(r["spent"])} spent of {inr(r["budget"])} limit ({r["pct"]:.0f}% utilized).</div>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
         elif r["status"] == "warning":
             st.markdown(
-                f"""
-                <div class="alert-banner warn">
-                    <span style="font-size: 1.1rem;">⚠️</span>
-                    <div>
-                        <strong>{r['category']} approaching limit:</strong>
-                        {r['pct']:.0f}% of budget used ({inr(r['spent'])} of {inr(r['budget'])}).
-                    </div>
-                </div>
-                """,
+                f'<div class="alert-banner warn">'
+                f'<span style="font-size: 1.1rem;">⚠️</span>'
+                f'<div><strong>{r["category"]} approaching limit:</strong> {r["pct"]:.0f}% of budget used ({inr(r["spent"])} of {inr(r["budget"])}).</div>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -1236,15 +1220,11 @@ elif page == "Add Transaction":
     if p:
         method_desc = {"rule": "Keyword Rule", "ml": "Naive Bayes ML Model", "default": "Fallback Classifier"}[p["method"]]
         st.markdown(
-            f"""
-            <div class="alert-banner good">
-                <span>🤖</span>
-                <div>
-                    <strong>AI Detected:</strong> {inr(p['amount'])} &middot; {p['type'].capitalize()} &middot;
-                    <strong>{p['category']}</strong> ({p['confidence'] * 100:.0f}% confidence via {method_desc}) &middot; {p['date']}
-                </div>
-            </div>
-            """,
+            f'<div class="alert-banner good">'
+            f'<span>🤖</span>'
+            f'<div><strong>AI Detected:</strong> {inr(p["amount"])} &middot; {p["type"].capitalize()} &middot; '
+            f'<strong>{p["category"]}</strong> ({p["confidence"] * 100:.0f}% confidence via {method_desc}) &middot; {p["date"]}</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
 
@@ -1526,12 +1506,10 @@ elif page == "Insights & Forecast":
     for level, msg in an.insights(df, budgets, year, month, today):
         cls_map = {"danger": "danger", "warn": "warn", "good": "good", "info": "info"}
         st.markdown(
-            f"""
-            <div class="alert-banner {cls_map.get(level, 'info')}">
-                <span>{LEVEL_ICON.get(level, 'ℹ️')}</span>
-                <div>{msg}</div>
-            </div>
-            """,
+            f'<div class="alert-banner {cls_map.get(level, "info")}">'
+            f'<span>{LEVEL_ICON.get(level, "ℹ️")}</span>'
+            f'<div>{msg}</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
     st.markdown("</div>", unsafe_allow_html=True)
