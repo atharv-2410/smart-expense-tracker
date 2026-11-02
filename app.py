@@ -865,6 +865,7 @@ if "user" not in st.session_state:
 user = st.session_state.user
 uid = user["id"]
 df = db.fetch_transactions(uid)
+df["date"] = pd.to_datetime(df["date"], errors="coerce")
 budgets = db.get_budgets(uid)
 
 # Train categoriser on seed corpus + this user's own history

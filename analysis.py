@@ -9,6 +9,9 @@ import pandas as pd
 def month_slice(df, year, month):
     if df.empty:
         return df
+    if not pd.api.types.is_datetime64_any_dtype(df["date"]):
+        df = df.copy()
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
     return df[(df["date"].dt.year == year) & (df["date"].dt.month == month)]
 
 

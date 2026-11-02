@@ -126,8 +126,7 @@ def fetch_transactions(user_id):
         df = pd.read_sql_query(
             "SELECT * FROM transactions WHERE user_id=? ORDER BY date DESC, id DESC", c, params=(user_id,)
         )
-    if not df.empty:
-        df["date"] = pd.to_datetime(df["date"])
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
     return df
 
 
